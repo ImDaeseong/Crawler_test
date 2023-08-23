@@ -1,98 +1,178 @@
 import requests
 from bs4 import BeautifulSoup
-import urllib.parse
+
+nLastIndex = 0  # 전역 변수로 선언
 
 
-def f1():
-    baseURL = "https://www.jobkorea.co.kr"
-    searchKeyword = "인도네시아"
-    searchURL = baseURL + "/Search/?stext=" + searchKeyword
+def resultNum():
+    global nLastIndex
+    baseURL = "https://www.dhlottery.co.kr/gameResult.do?method=byWin"
+    searchURL = baseURL
 
-    response = requests.get(searchURL)
-    response.raise_for_status()
+    try:
+        response = requests.get(searchURL)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        print("Error:", e)
+        return
+
+    soup = BeautifulSoup(response.content, "html.parser")
+
+    singlenode1 = soup.find('div', class_='contentsArticle')
+    if not singlenode1:
+        print("singlenode1")
+        return
+
+    singlenode2 = singlenode1.find('select', id='dwrNoList')
+    if not singlenode2:
+        print("singlenode2")
+        return
+
+    # 첫번째 값만 가져온다.
+    optionNode = singlenode2.find('option')
+    if optionNode:
+        value = optionNode.get('value', '')
+        text = optionNode.get_text()
+        sResult = f"{value} : {text}\r\n"
+        # print(sResult)
+        nLastIndex = int(text)
+    else:
+        print("No option found")
+        return
+
+    '''
+    # 전체 값을 가져온다.
+    optionNodes = singlenode2.find_all('option')
+    sResult = ""
+    if optionNodes:
+        for optionNode in optionNodes:
+            value = optionNode.get('value', '')
+            text = optionNode.get_text()
+            sResult += f"{value} : {text}\r\n"
+            #print(sResult)
+    else:
+        print("No options found")        
+    '''
+
+
+def resultlastNum():
+    global nLastIndex
+    baseURL = "https://www.dhlottery.co.kr/gameResult.do?method=byWin&drwNo="
+    searchURL = baseURL + str(nLastIndex)
+    # print(searchURL)
+
+    try:
+        response = requests.get(searchURL)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        print("Error:", e)
+        return
 
     soup = BeautifulSoup(response.content, "html.parser")
 
-    sResultNodes = ""
-    sResultPagination = ""
-
-    result_divs = soup.select("div.list-default")
-    for result_div in result_divs:
-        sResultNodes += result_div.get_text() + "\n"
-
-    pagination_divs = soup.select("div.tplPagination.newVer.wide")
-    for pagination_div in pagination_divs:
-        sResultPagination = pagination_div.get_text()
-
-    print("Nodes:")
-    print(sResultNodes)
-    print("Pagination:")
-    print(sResultPagination)
-
-
-def f2():
-    baseURL = "https://www.jobkorea.co.kr"
-    searchKeyword = "인도네시아"
-    searchURL = baseURL + "/Search/?stext=" + searchKeyword
-
-    response = requests.get(searchURL)
-    response.raise_for_status()
-
-    soup = BeautifulSoup(response.content, "html.parser")
+    singlenode1 = soup.find('div', class_='contentsArticle')
+    if not singlenode1:
+        print("singlenode1")
+        return
 
     sResult = ""
 
-    post_list_items = soup.select(".list-post")
-    for item in post_list_items:
-        if "data-gavirturl" in item.attrs:
-            surl = item["data-gavirturl"]
-        else:
-            surl = "N/A"
+    # 당첨번호
+    numbernode = singlenode1.find('div', class_='win_result')
+    if numbernode:
+        h4Node = numbernode.find('h4').find('strong')
+        sh = h4Node.get_text().strip()
+        # print(sh)
 
-        if "data-gainfo" in item.attrs:
-            sinfo = item["data-gainfo"]
-        else:
-            sinfo = "N/A"
+        descNode = numbernode.find('p', class_='desc')
+        sDesc = descNode.get_text().strip()
+        # print(sDesc)
 
-        node1 = item.select_one(".post-list-corp")
-        node2 = item.select_one(".post-list-info")
+        winNodes = numbernode.find_all('div', class_='nums')
+        for item in winNodes:
+            node1 = item.find('div', class_='num win')
+            if node1:
+                spanNodes = item.find_all('span')
+                if spanNodes:
+                    s1 = spanNodes[0].get_text().strip()
+                    s2 = spanNodes[1].get_text().strip()
+                    s3 = spanNodes[2].get_text().strip()
+                    s4 = spanNodes[3].get_text().strip()
+                    s5 = spanNodes[4].get_text().strip()
+                    s6 = spanNodes[5].get_text().strip()
+                    sResult += f"{s1}|{s2}|{s3}|{s4}|{s5}|{s6}\r\n"
+                    # print(sResult)
 
-        if node1:
-            node1_text = node1.get_text()
-        else:
-            node1_text = "N/A"
+            node2 = item.find('div', class_='num bonus')
+            if node2:
+                spanNode = node2.find('p').find('span')
+                if spanNode:
+                    s1 = spanNode.get_text().strip()
+                    sResult += f"{s1}\r\n"
+                    # print(sResult)
 
-        if node2:
-            node2_text = node2.get_text()
-        else:
-            node2_text = "N/A"
-
-        sResult += surl + "\r\n" + sinfo + "\r\n" + node1_text + "\r\n" + node2_text + "\r\n\r\n"
-
+    # 1등부터 5등까지 당첨정보
+    bodyNode = singlenode1.find('tbody')
+    if bodyNode:
+        trNodes = bodyNode.find_all('tr')
+        for item in trNodes:
+            tdNodes = item.find_all('td')
+            if tdNodes:
+                s1 = tdNodes[0].get_text().strip()
+                s2 = tdNodes[1].get_text().strip()
+                s3 = tdNodes[2].get_text().strip()
+                s4 = tdNodes[3].get_text().strip()
+                s5 = tdNodes[4].get_text().strip()
+                sResult += f"{s1}|{s2}|{s3}|{s4}|{s5}\r\n"
+                # print(sResult)
     print(sResult)
 
 
-def f3():
-    baseURL = "https://www.jobkorea.co.kr"
-    searchKeyword = "인도네시아"
-    searchURL = baseURL + "/Search/?stext=" + urllib.parse.quote(searchKeyword)
-
-    response = requests.get(searchURL)
-    response.raise_for_status()
-
-    soup = BeautifulSoup(response.content, "html.parser")
-
+def resultAllNum():
+    global nLastIndex
+    baseURL = "https://www.dhlottery.co.kr/gameResult.do?method=byWin&drwNo="
     sResult = ""
+    s1, s2, s3, s4, s5, s6 = "", "", "", "", "", ""
 
-    pagination_links = soup.select("div.tplPagination.newVer.wide li a[href]")
-    for link in pagination_links:
-        href = link["href"]
-        sResult += href + "\r\n"
+    for i in range(1, nLastIndex + 1):
+        sUrlIndex = f"{baseURL}{i}"
+        # print(sUrlIndex)
 
+        try:
+            response = requests.get(sUrlIndex)
+            response.raise_for_status()
+
+            soup = BeautifulSoup(response.content, "html.parser")
+
+            singlenode1 = soup.find('div', class_='contentsArticle')
+            if singlenode1 is None:
+                continue
+
+            # 당첨번호
+            numbernode = singlenode1.find('div', class_='win_result')
+            if numbernode:
+                winNodes = numbernode.find_all('div', class_='nums')
+                if winNodes:
+                    for item in winNodes:
+                        node1 = item.find('div', class_='num win')
+                        if node1:
+                            spanNodes = item.find_all('span')
+                            if spanNodes:
+                                s1 = spanNodes[0].get_text().strip()
+                                s2 = spanNodes[1].get_text().strip()
+                                s3 = spanNodes[2].get_text().strip()
+                                s4 = spanNodes[3].get_text().strip()
+                                s5 = spanNodes[4].get_text().strip()
+                                s6 = spanNodes[5].get_text().strip()
+                                sResult += f"{s1}|{s2}|{s3}|{s4}|{s5}|{s6}\r\n"
+                                #print(sResult)
+        except Exception as e:
+            print("Error:", e)
+            continue
     print(sResult)
 
 
 if __name__ == "__main__":
-    f1()
-    #f2()
-    # f3()
+    resultNum()
+    # resultlastNum()
+    resultAllNum()
