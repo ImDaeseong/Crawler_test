@@ -1,38 +1,45 @@
 ﻿using HtmlAgilityPack;
 using System;
-using System.Windows.Forms;
-using System.Web;
-using System.Xml.Linq;
-using System.Security.Policy;
-using static System.Net.Mime.MediaTypeNames;
 using System.Collections.Generic;
+using System.Linq;
+using System.Security.Policy;
+using System.Text;
+using System.Threading.Tasks;
+using System.Web.UI.WebControls;
+using System.Web;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
 
-namespace HtmlAgilityPack_WindowsFormsApp1
+namespace WpfApp1
 {
-    public partial class Form2 : Form
+    public partial class MainWindow1 : Window
     {
         string sUrlIndex = "https://www.dhlottery.co.kr/gameResult.do?method=byWin";
         string sUrl = "https://www.dhlottery.co.kr/gameResult.do?method=byWin&drwNo=";
 
         int nLastIndex = 0;
 
-
-        public Form2()
+        public MainWindow1()
         {
             InitializeComponent();
         }
-
-        private void Form2_Load(object sender, EventArgs e)
+                
+        private void Window_Loaded(object sender, RoutedEventArgs e)
         {
 
         }
 
-        //당첨마지막회차 번호
-        private async void button1_Click(object sender, EventArgs e)
+        private async void Button1_Click(object sender, RoutedEventArgs e)
         {
             string sResult = "";
-            textBox1.Text = sResult;
-            textBox2.Text = sResult;
+            TextBox1.Text = sResult;
+            TextBox2.Text = sResult;
 
             HtmlParser1 parser = new HtmlParser1();
             string sHtml = await parser.getHtml(sUrlIndex);
@@ -57,31 +64,31 @@ namespace HtmlAgilityPack_WindowsFormsApp1
                 sResult = value + " : " + text + "\r\n";
                 nLastIndex = int.Parse(text);
             }
-            textBox1.Text = sResult;
+            TextBox1.Text = sResult;
 
             /*
             //전체 값을 가져온다.
             HtmlNodeCollection optionNodes = singlenode2.SelectNodes(".//option");
             if (optionNodes != null)
             {
-                foreach (HtmlNode optionNode in optionNodes)
+                foreach (HtmlNode opt in optionNodes)
                 {
-                    string value = optionNode.GetAttributeValue("value", "");
-                    string text = optionNode.InnerText;
+                    string value = opt.GetAttributeValue("value", "");
+                    string text = opt.InnerText;
                     sResult += value + " : " + text + "\r\n";
                 }
             }
-            textBox1.Text = sResult;
+            TextBox1.Text = sResult;
             */
+
         }
 
-        //마지막회차 당첨 정보
-        private async void button2_Click(object sender, EventArgs e)
+        private async void Button2_Click(object sender, RoutedEventArgs e)
         {
             string sResult = "";
             string s1, s2, s3, s4, s5, s6;
-            textBox1.Text = sResult;
-            textBox2.Text = sResult;
+            TextBox1.Text = sResult;
+            TextBox2.Text = sResult;
 
             string sUrlIndex = sUrl + nLastIndex.ToString();
 
@@ -123,9 +130,9 @@ namespace HtmlAgilityPack_WindowsFormsApp1
                                 s5 = spanNodes[4].InnerText.Trim();
                                 s6 = spanNodes[5].InnerText.Trim();
                                 sResult += s1 + "|" + s2 + "|" + s3 + "|" + s4 + "|" + s5 + "|" + s6 + "\r\n";
-                            }                                
+                            }
                         }
-                        
+
                         HtmlNode node2 = item.SelectSingleNode("//div[@class='num bonus']");
                         if (node2 != null)
                         {
@@ -133,13 +140,13 @@ namespace HtmlAgilityPack_WindowsFormsApp1
                             if (spanNode != null)
                             {
                                 s1 = spanNode.InnerText.Trim();
-                                sResult += s1  + "\r\n";
+                                sResult += s1 + "\r\n";
                             }
                         }
                     }
                 }
             }
-            textBox1.Text = sResult;
+            TextBox1.Text = sResult;
             sResult = "";
 
 
@@ -155,8 +162,8 @@ namespace HtmlAgilityPack_WindowsFormsApp1
                         HtmlNodeCollection tdNodes = item.SelectNodes(".//td");
                         if (tdNodes != null)
                         {
-                            s1 = tdNodes[0].InnerText.Trim();  
-                            s2 = tdNodes[1].InnerText.Trim(); 
+                            s1 = tdNodes[0].InnerText.Trim();
+                            s2 = tdNodes[1].InnerText.Trim();
                             s3 = tdNodes[2].InnerText.Trim();
                             s4 = tdNodes[3].InnerText.Trim();
                             s5 = tdNodes[4].InnerText.Trim();
@@ -172,16 +179,15 @@ namespace HtmlAgilityPack_WindowsFormsApp1
                     }
                 }
             }
-            textBox2.Text = sResult;
+            TextBox2.Text = sResult;
         }
 
-        //전체 당첨 정보
-        private async void button3_Click(object sender, EventArgs e)
+        private async void Button3_Click(object sender, RoutedEventArgs e)
         {
             string sResult = "";
             string s1, s2, s3, s4, s5, s6;
-            textBox1.Text = sResult;
-            textBox2.Text = sResult;
+            TextBox1.Text = sResult;
+            TextBox2.Text = sResult;
 
             for (int i = 1; i <= nLastIndex; i++)
             {
@@ -227,7 +233,9 @@ namespace HtmlAgilityPack_WindowsFormsApp1
                 }
             }
 
-            textBox1.Text = sResult;
+            TextBox1.Text = sResult;
         }
+
     }
+   
 }
